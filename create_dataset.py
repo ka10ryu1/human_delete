@@ -4,6 +4,7 @@
 help = '画像を読み込んでデータセットを作成する'
 #
 
+import os
 import cv2
 import argparse
 import numpy as np
@@ -48,25 +49,88 @@ def saveNPZ(x, y, name, folder, size):
     np.savez(F.getFilePath(folder, name + size_str + num_str), x=x, y=y)
 
 
+def getSomeImage(path, num, size):
+    all_path = [os.path.join(path, f) for f in os.listdir(path)]
+    if(num > 1):
+        img_num = np.random.choice(
+            range(len(all_path)), np.random.randint(1, num), replace=False
+        )
+        return [IMG.resizeP(cv2.imread(all_path[i], IMG.getCh(0)), size)
+                for i in img_num]
+    else:
+        img_num = np.random.choice(range(len(all_path)), 1, replace=False)[0]
+        return IMG.resizeP(cv2.imread(all_path[img_num], IMG.getCh(0)), size)
+
+
+def rondom_crop(img):
+    w, h = img.shape[:2]
+    short_side = min(img.shape[:2])
+    x = np.random.randint(0, w - short_side + 1)
+    y = np.random.randint(0, h - short_side + 1)
+    return img[x:x + short_side, y:y + short_side]
+
+
+def getImage(path, size):
+    return getSomeImage(path, 1, size)
+
+
+def paste(fg, bg):
+    # Load two images
+    img1 = bg.copy()
+    img2, _ = IMG.rotateR(fg, [-90, 90], 1.0)
+
+    # I want to put logo on top-left corner, So I create a ROI
+    w1, h1 = img1.shape[:2]
+    w2, h2 = img2.shape[:2]
+    x = np.random.randint(0, w1 - w2 + 1)
+    y = np.random.randint(0, w1 - w2 + 1)
+    roi = img1[x:x + w2, y:y + h2]
+
+    # Now create a mask of logo and create its inverse mask also
+    mask = img2[:, :, 3]
+    ret, mask_inv = cv2.threshold(
+        cv2.bitwise_not(mask),
+        200, 255, cv2.THRESH_BINARY
+    )
+
+    kernel1 = np.ones((5, 5), np.uint8)
+    kernel2 = np.ones((3, 3), np.uint8)
+    mask_inv = cv2.dilate(mask_inv, kernel1, iterations=1)
+    mask_inv = cv2.erode(mask_inv, kernel2, iterations=1)
+
+    # Now black-out the area of logo in ROI
+    img1_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
+
+    # Take only region of logo from logo image.
+    img2_fg = cv2.bitwise_and(img2, img2, mask=mask)
+
+    # Put logo in ROI and modify the main image
+    dst = cv2.add(img1_bg, img2_fg)
+    img1[x:x + w2, y:y + h2] = dst
+    return img1
+
+
+def create(obj_path, h_path, bg_path, num):
+    x = []
+    y = []
+    for i in range(num):
+        objects = getSomeImage('Image/other/', 6, 64)
+        human = getImage('Image/people/', 64)
+        background = rondom_crop(getImage('Image/background/', 256))
+
+        for j in objects:
+            background = paste(j, background)
+
+        x.append(paste(human, background))
+        y.append(background)
+
+    return np.array(x), np.array(y)
+
+
 def main(args):
-    # OpenCV形式で画像を読み込むために
-    # チャンネル数をOpenCVのフラグ形式に変換する
-    ch = IMG.getCh(args.channel)
-    # OpenCV形式で画像をリストで読み込む
-    print('read images...')
-    imgs = [cv2.imread(name, ch) for name in args.jpeg]
-    # 画像を圧縮して分割する（学習の入力データに相当）
-    print('split images...')
-    x, _ = IMG.splitSQN(
-        IMG.flipN(
-            IMG.encodeDecodeN(imgs, ch, args.quality), args.augmentation
-        ),
-        args.img_size, args.round
-    )
-    # 画像を分割する（正解データに相当）
-    y, _ = IMG.splitSQN(
-        IMG.flipN(imgs, args.augmentation), args.img_size, args.round
-    )
+
+    print('create images...')
+    x, y = create('Image/other/', 'Image/people/', 'Image/background/', 1000)
 
     # 画像の並び順をシャッフルするための配列を作成する
     # compとrawの対応を崩さないようにシャッフルしなければならない
