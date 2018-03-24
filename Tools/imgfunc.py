@@ -150,7 +150,8 @@ def splitSQ(img, size, flg=cv2.BORDER_REPLICATE):
     # 縦横の分割数を計算する
     split = (img.shape[0] // size, img.shape[1] // size)
     # 画像を分割する
-    imgs_2d = [np.vsplit(img, split[0]) for img in np.hsplit(img, split[1])]
+    imgs_2d = [np.vsplit(i, split[0])
+               for i in np.hsplit(img, split[1])]
     imgs_1d = [x for l in imgs_2d for x in l]
     return imgs_1d, split
 
@@ -339,7 +340,12 @@ def resizeP(img, pixel, flg=cv2.INTER_NEAREST):
     [out] サイズを変更した画像リスト
     """
 
-    return resize(img, pixel / np.min(img.shape[:2]), flg)
+    r_img = resize(img, pixel / np.min(img.shape[:2]), flg)
+    b_img = cv2.copyMakeBorder(
+        r_img, 0, 2, 0, 2, cv2.BORDER_CONSTANT, value=(0, 0, 0)
+    )
+
+    return b_img[:pixel, :pixel]
 
 
 def resizeN(imgs, rate, flg=cv2.INTER_NEAREST):
