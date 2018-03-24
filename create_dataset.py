@@ -15,19 +15,23 @@ import Tools.func as F
 
 def command():
     parser = argparse.ArgumentParser(description=help)
-    parser.add_argument('jpeg', nargs='+',
-                        help='使用する画像のパス')
-    parser.add_argument('--channel', '-c', type=int, default=1,
-                        help='画像のチャンネル数 [default: 1 channel]')
-    parser.add_argument('--augmentation', '-a', type=int, default=2,
-                        help='水増しの種類 [default: 2]')
-    parser.add_argument('--img_size', '-s', type=int, default=32,
-                        help='生成される画像サイズ [default: 32 pixel]')
-    parser.add_argument('--round', '-r', type=int, default=1000,
+    parser.add_argument('-ot', '--other_path', default='./Image/other/',
+                        help='・ (default: ./Image/other/')
+    parser.add_argument('-hu', '--human_path', default='./Image/people/',
+                        help='・ (default: ./Image/people/')
+    parser.add_argument('-bg', '--background_path', default='./Image/background/',
+                        help='・ (default: ./Image/background/')
+    parser.add_argument('-os', '--obj_size', type=int, default=64,
+                        help='挿入する画像サイズ [default: 64 pixel]')
+    parser.add_argument('-is', '--img_size', type=int, default=256,
+                        help='生成される画像サイズ [default: 256 pixel]')
+    parser.add_argument('-r', '--round', type=int, default=1000,
                         help='切り捨てる数 [default: 1000]')
-    parser.add_argument('--quality', '-q', type=int, default=5,
-                        help='画像の圧縮率 [default: 5]')
-    parser.add_argument('--train_per_all', '-t', type=float, default=0.9,
+    parser.add_argument('-in', '--img_num', type=int, default=1000,
+                        help='画像を生成する数 [default: 1000]')
+    parser.add_argument('-on', '--oth_num', type=int, default=6,
+                        help='画像を生成する数 [default: 6]')
+    parser.add_argument('-t', '--train_per_all', type=float, default=0.9,
                         help='画像数に対する学習用画像の割合 [default: 0.9]')
     parser.add_argument('-o', '--out_path', default='./result/',
                         help='・ (default: ./result/)')
@@ -113,16 +117,16 @@ def paste(fg, bg):
 def create(obj_path, h_path, bg_path, num):
     x = []
     y = []
-    for i in range(num):
-        objects = getSomeImage('Image/other/', 6, 64)
-        human = getImage('Image/people/', 64)
-        background = rondom_crop(getImage('Image/background/', 256))
+    for i in range(args.img_num):
+        objects = getSomeImage(args.other_path, args.oth_num, args.obj_size)
+        human = getImage(args.human_path, args.obj_size)
+        background = rondom_crop(getImage(args.background_path, args.img_size))
 
         for j in objects:
             background = paste(j, background)
 
-        x.append(paste(human, background))
-        y.append(background)
+        x.append(paste(human, background)[:, :, :3])
+        y.append(background[:, :, :3])
 
     return np.array(x), np.array(y)
 
@@ -130,7 +134,8 @@ def create(obj_path, h_path, bg_path, num):
 def main(args):
 
     print('create images...')
-    x, y = create('Image/other/', 'Image/people/', 'Image/background/', 1000)
+    x, y = create('Image/other/', 'Image/people/',
+                  'Image/background/', args.img_num)
 
     # 画像の並び順をシャッフルするための配列を作成する
     # compとrawの対応を崩さないようにシャッフルしなければならない
