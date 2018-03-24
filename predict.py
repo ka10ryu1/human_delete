@@ -13,7 +13,7 @@ import chainer
 import chainer.links as L
 from chainer.cuda import to_cpu
 
-from Lib.concat_3_images import concat3Images
+from create_dataset import create
 import Tools.imgfunc as IMG
 import Tools.getfunc as GET
 import Tools.func as F
@@ -25,10 +25,18 @@ def command():
                         help='使用する学習済みモデル')
     parser.add_argument('param',
                         help='使用するモデルパラメータ')
-    parser.add_argument('jpeg', nargs='+',
-                        help='使用する画像のパス')
-    parser.add_argument('--quality', '-q', type=int, default=5,
-                        help='画像の圧縮率 [default: 5]')
+    parser.add_argument('-ot', '--other_path', default='./Image/other/',
+                        help='・ (default: ./Image/other/')
+    parser.add_argument('-hu', '--human_path', default='./Image/people/',
+                        help='・ (default: ./Image/people/')
+    parser.add_argument('-bg', '--background_path', default='./Image/background/',
+                        help='・ (default: ./Image/background/')
+    parser.add_argument('-os', '--obj_size', type=int, default=64,
+                        help='挿入する画像サイズ [default: 64 pixel]')
+    parser.add_argument('-on', '--obj_num', type=int, default=6,
+                        help='画像を生成する数 [default: 6]')
+    parser.add_argument('-is', '--img_size', type=int, default=256,
+                        help='生成される画像サイズ [default: 256 pixel]')
     parser.add_argument('--batch', '-b', type=int, default=100,
                         help='ミニバッチサイズ [default: 100]')
     parser.add_argument('--gpu', '-g', type=int, default=-1,
@@ -60,36 +68,24 @@ def encDecWrite(img, ch, quality, out_path='./result', val=-1):
     return comp
 
 
-def predict(model, data, batch, org_shape, gpu):
+def predict(model, img, batch, gpu):
     """
     推論実行メイン部
     [in]  model:     推論実行に使用するモデル
-    [in]  data:      分割（IMG.split）されたもの
+    [in]  img:       入力画像
     [in]  batch:     バッチサイズ
-    [in]  org_shape: 分割前のshape
     [in]  gpu:       GPU ID
     [out] img:       推論実行で得られた生成画像
     """
 
     # dataには圧縮画像と分割情報が含まれているので、分離する
-    comp, size = data
-    imgs = []
     st = time.time()
     # バッチサイズごとに学習済みモデルに入力して画像を生成する
-    for i in range(0, len(comp), batch):
-        x = IMG.imgs2arr(comp[i:i + batch], gpu=gpu)
-        y = model.predictor(x)
-        imgs.extend(IMG.arr2imgs(to_cpu(y.array)))
-
+    x = IMG.imgs2arr(img, gpu=gpu)
+    y = model.predictor(x)
+    predict_img = IMG.arr2imgs(to_cpu(y.array))[0]
     print('exec time: {0:.2f}[s]'.format(time.time() - st))
-    # 生成された画像を分割情報をもとに結合する
-    buf = [np.vstack(imgs[i * size[0]: (i + 1) * size[0]])
-           for i in range(size[1])]
-    img = np.hstack(buf)
-    # 出力画像は入力画像の2倍の大きさになっているので半分に縮小する
-    img = IMG.resize(img, 0.5)
-    # 結合しただけでは画像サイズがオリジナルと異なるので切り取る
-    return img[:org_shape[0], :org_shape[1]]
+    return predict_img
 
 
 def main(args):
@@ -121,34 +117,24 @@ def main(args):
         chainer.cuda.get_device_from_id(args.gpu).use()
         model.to_gpu()
 
-    # 高圧縮画像の生成
-    ch_flg = IMG.getCh(ch)
-    org_imgs = [cv2.imread(name, ch_flg)
-                for name in args.jpeg if IMG.isImgPath(name)]
-    ed_imgs = [encDecWrite(img, ch, args.quality, args.out_path, i)
-               for i, img in enumerate(org_imgs)]
-    imgs = []
+    # 画像の生成
+    x, _ = create(args.other_path,
+                  args.human_path,
+                  args.background_path,
+                  args.obj_size, args.img_size,
+                  args.obj_num, 1)
     with chainer.using_config('train', False):
         # 学習モデルを入力画像ごとに実行する
-        for i, ei in enumerate(ed_imgs):
-            img = predict(
-                model, IMG.splitSQ(ei, size), args.batch, ei.shape, args.gpu
-            )
-            # 生成結果を保存する
-            name = F.getFilePath(
-                args.out_path, 'comp-' + str(i * 10 + 1).zfill(3), '.jpg'
-            )
-            print('save:', name)
-            cv2.imwrite(name, img)
-            imgs.append(img)
-
-    # オリジナル、高圧縮、推論実行結果を連結して保存・表示する
-    c3i = [concat3Images([i, j, k], 50, 333, ch, 1)
-           for i, j, k in zip(org_imgs, ed_imgs, imgs)]
-    for i, img in enumerate(c3i):
-        path = F.getFilePath(args.out_path, 'concat-' + str(i * 10).zfill(3), '.jpg')
-        cv2.imwrite(path, img)
-        cv2.imshow(path, img)
+        img = IMG.resize(predict(model, x, args.batch, args.gpu), 0.5)
+        print(img.shape)
+        # 生成結果を保存する
+        name = F.getFilePath(args.out_path, 'predict', '.jpg')
+        print('save:', name)
+        print(img.shape)
+        print(x[0].shape)
+        img = np.hstack([x[0], img])
+        cv2.imwrite(name, img)
+        cv2.imshow(name, img)
         cv2.waitKey()
 
 

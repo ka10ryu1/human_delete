@@ -29,7 +29,7 @@ def command():
                         help='切り捨てる数 [default: 1000]')
     parser.add_argument('-in', '--img_num', type=int, default=1000,
                         help='画像を生成する数 [default: 1000]')
-    parser.add_argument('-on', '--oth_num', type=int, default=6,
+    parser.add_argument('-on', '--obj_num', type=int, default=6,
                         help='画像を生成する数 [default: 6]')
     parser.add_argument('-t', '--train_per_all', type=float, default=0.9,
                         help='画像数に対する学習用画像の割合 [default: 0.9]')
@@ -78,13 +78,13 @@ def getImage(path, size):
     return getSomeImage(path, 1, size)
 
 
-def create(obj_path, h_path, bg_path, num):
+def create(obj_path, h_path, bg_path, obj_size, img_size, obj_num, create_num):
     x = []
     y = []
-    for i in range(args.img_num):
-        objects = getSomeImage(args.other_path, args.oth_num, args.obj_size)
-        human = getImage(args.human_path, args.obj_size)
-        background = rondom_crop(getImage(args.background_path, args.img_size))
+    for i in range(create_num):
+        objects = getSomeImage(obj_path, obj_num, obj_size)
+        human = getImage(h_path, obj_size)
+        background = rondom_crop(getImage(bg_path, img_size))
 
         for j in objects:
             background = IMG.paste(j, background)
@@ -98,8 +98,11 @@ def create(obj_path, h_path, bg_path, num):
 def main(args):
 
     print('create images...')
-    x, y = create('Image/other/', 'Image/people/',
-                  'Image/background/', args.img_num)
+    x, y = create(args.other_path,
+                  args.human_path,
+                  args.background_path,
+                  args.obj_size, args.img_size,
+                  args.obj_num, args.img_num)
 
     # 画像の並び順をシャッフルするための配列を作成する
     # compとrawの対応を崩さないようにシャッフルしなければならない
