@@ -122,20 +122,19 @@ def main(args):
                   args.human_path,
                   args.background_path,
                   args.obj_size, args.img_size,
-                  args.obj_num, 1)
+                  args.obj_num, 1, 1)
+
+    # 学習モデルを実行する
     with chainer.using_config('train', False):
-        # 学習モデルを入力画像ごとに実行する
         img = IMG.resize(predict(model, x, args.batch, args.gpu), 0.5)
-        print(img.shape)
-        # 生成結果を保存する
-        name = F.getFilePath(args.out_path, 'predict', '.jpg')
-        print('save:', name)
-        print(img.shape)
-        print(x[0].shape)
-        img = np.hstack([x[0], img])
-        cv2.imwrite(name, img)
-        cv2.imshow(name, img)
-        cv2.waitKey()
+
+    # 生成結果を保存する
+    name = F.getFilePath(args.out_path, 'predict', '.jpg')
+    print('save:', name)
+    img = np.hstack([x[0], img])
+    cv2.imwrite(name, img)
+    cv2.imshow(name, img)
+    cv2.waitKey()
 
 
 if __name__ == '__main__':

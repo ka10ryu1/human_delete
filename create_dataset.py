@@ -29,8 +29,10 @@ def command():
                         help='切り捨てる数 [default: 1000]')
     parser.add_argument('-in', '--img_num', type=int, default=1000,
                         help='画像を生成する数 [default: 1000]')
-    parser.add_argument('-on', '--obj_num', type=int, default=6,
-                        help='画像を生成する数 [default: 6]')
+    parser.add_argument('-on', '--obj_num', type=int, default=4,
+                        help='障害物の最大数 [default: 4]')
+    parser.add_argument('-hn', '--human_num', type=int, default=2,
+                        help='人間の最大数 [default: 2]')
     parser.add_argument('-t', '--train_per_all', type=float, default=0.9,
                         help='画像数に対する学習用画像の割合 [default: 0.9]')
     parser.add_argument('-o', '--out_path', default='./result/',
@@ -78,19 +80,24 @@ def getImage(path, size):
     return getSomeImage(path, 1, size)
 
 
-def create(obj_path, h_path, bg_path, obj_size, img_size, obj_num, create_num):
+def create(obj_path, h_path, bg_path,
+           obj_size, img_size,
+           obj_num, h_num, create_num):
     x = []
     y = []
     for i in range(create_num):
-        objects = getSomeImage(obj_path, obj_num, obj_size)
-        human = getImage(h_path, obj_size)
+        objects = getSomeImage(obj_path, obj_num + 1, obj_size)
+        human = getSomeImage(h_path, h_num + 1, obj_size)
         background = rondom_crop(getImage(bg_path, img_size))
 
         for j in objects:
             background = IMG.paste(j, background)
 
-        x.append(IMG.paste(human, background)[:, :, :3])
         y.append(background[:, :, :3])
+        for k in human:
+            background = IMG.paste(k, background)
+
+        x.append(background[:, :, :3])
 
     return np.array(x), np.array(y)
 
@@ -102,7 +109,7 @@ def main(args):
                   args.human_path,
                   args.background_path,
                   args.obj_size, args.img_size,
-                  args.obj_num, args.img_num)
+                  args.obj_num, args.human_num, args.img_num)
 
     # 画像の並び順をシャッフルするための配列を作成する
     # compとrawの対応を崩さないようにシャッフルしなければならない
