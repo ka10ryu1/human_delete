@@ -72,12 +72,11 @@ class UpSampleBlock(Chain):
 
 class JC_DDUU(Chain):
     def __init__(self, n_unit=128, n_out=1, rate=4,
-                 layer=3, actfun_1=F.relu, actfun_2=F.sigmoid,
+                 actfun_1=F.relu, actfun_2=F.sigmoid,
                  dropout=0.0, view=False):
         """
         [in] n_unit:    中間層のユニット数
         [in] n_out:     出力チャンネル
-        [in] layer:     中間層の数
         [in] actfun_1: 活性化関数（Layer A用）
         [in] actfun_2: 活性化関数（Layer B用）
         """
@@ -112,12 +111,11 @@ class JC_DDUU(Chain):
                 (rate**2) * 3, 3, 5, 1, 2, actfun_2, 0, rate
             )
 
-        self.layer = layer
         self.view = view
 
         print('[Network info]', self.__class__.__name__)
-        print('  Unit:\t{0}\n  Out:\t{1}\n  Layer:\t{2}\n  Drop out:\t{3}\nAct Func:\t{4}, {5}'.format(
-            n_unit, n_out, layer, dropout, actfun_1.__name__, actfun_2.__name__)
+        print('  Unit:\t{0}\n  Out:\t{1}\n  Drop out:\t{2}\nAct Func:\t{3}, {4}'.format(
+            n_unit, n_out, dropout, actfun_1.__name__, actfun_2.__name__)
         )
 
     def block(self, f, x):

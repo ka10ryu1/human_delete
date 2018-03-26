@@ -17,6 +17,7 @@ from chainer.training import extensions
 from chainer.datasets import tuple_dataset
 
 
+from Lib.network import JC_DDUU as JC
 from Lib.plot_report_log import PlotReportLog
 import Tools.imgfunc as IMG
 import Tools.getfunc as GET
@@ -27,14 +28,10 @@ def command():
     parser = argparse.ArgumentParser(description=help)
     parser.add_argument('-i', '--in_path', default='./result/',
                         help='入力データセットのフォルダ [default: ./result/]')
-    parser.add_argument('-n', '--network', type=int, default=0,
-                        help='ネットワーク層 [default: 0(DDUU), other: 1(DUDU)]')
     parser.add_argument('-u', '--unit', type=int, default=2,
                         help='ネットワークのユニット数 [default: 2]')
     parser.add_argument('-sr', '--shuffle_rate', type=int, default=2,
                         help='PSの拡大率 [default: 2]')
-    parser.add_argument('-ln', '--layer_num', type=int, default=2,
-                        help='ネットワーク層の数 [default: 2]')
     parser.add_argument('-a1', '--actfun_1', default='relu',
                         help='活性化関数(1) [default: relu, other: elu/c_relu/l_relu/sigmoid/h_sigmoid/tanh/s_plus]')
     parser.add_argument('-a2', '--actfun_2', default='sigmoid',
@@ -134,13 +131,8 @@ def main(args):
     actfun_1 = GET.actfun(args.actfun_1)
     actfun_2 = GET.actfun(args.actfun_2)
     # モデルを決定する
-    if args.network == 0:
-        from Lib.network import JC_DDUU as JC
-    else:
-        from Lib.network2 import JC_UDUD as JC
-
     model = L.Classifier(
-        JC(n_unit=args.unit, layer=args.layer_num, rate=args.shuffle_rate,
+        JC(n_unit=args.unit, rate=args.shuffle_rate,
            actfun_1=actfun_1, actfun_2=actfun_2, dropout=args.dropout,
            view=args.only_check),
         lossfun=GET.lossfun(args.lossfun)
