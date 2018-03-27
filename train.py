@@ -102,7 +102,7 @@ def getImageData(folder, rate):
                 l, np_arr['x'].shape, np_arr['y'].shape)
             )
             x = np.array(np_arr['x'], dtype=np.float32)
-            y = IMG.arr2x(np.array(np_arr['y'], dtype=np.float32))
+            y = IMG.arrNx(np.array(np_arr['y'], dtype=np.float32), rate)
             test = tuple_dataset.TupleDataset(x, y)
             if(test._length > 0):
                 test_flg = True
