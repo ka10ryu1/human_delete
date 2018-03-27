@@ -32,18 +32,18 @@ def command():
                         help='ネットワークのユニット数 [default: 2]')
     parser.add_argument('-sr', '--shuffle_rate', type=int, default=2,
                         help='PSの拡大率 [default: 2]')
-    parser.add_argument('-a1', '--actfun_1', default='relu',
+    parser.add_argument('-a1', '--actfun1', default='relu',
                         help='活性化関数(1) [default: relu, other: elu/c_relu/l_relu/sigmoid/h_sigmoid/tanh/s_plus]')
-    parser.add_argument('-a2', '--actfun_2', default='sigmoid',
+    parser.add_argument('-a2', '--actfun2', default='sigmoid',
                         help='活性化関数(2) [default: sigmoid, other: relu/elu/c_relu/l_relu/h_sigmoid/tanh/s_plus]')
-    parser.add_argument('-d', '--dropout', type=float, default=0.0,
-                        help='ドロップアウト率（0〜0.9、0で不使用）[default: 0.0]')
+    parser.add_argument('-d', '--dropout', type=float, default=0.2,
+                        help='ドロップアウト率（0〜0.9、0で不使用）[default: 0.2]')
     parser.add_argument('-opt', '--optimizer', default='adam',
                         help='オプティマイザ [default: adam, other: ada_d/ada_g/m_sgd/n_ag/rmsp/rmsp_g/sgd/smorms]')
     parser.add_argument('-lf', '--lossfun', default='mse',
                         help='損失関数 [default: mse, other: mae, ber, gauss_kl]')
-    parser.add_argument('-b', '--batchsize', type=int, default=100,
-                        help='ミニバッチサイズ [default: 100]')
+    parser.add_argument('-b', '--batchsize', type=int, default=20,
+                        help='ミニバッチサイズ [default: 20]')
     parser.add_argument('-e', '--epoch', type=int, default=10,
                         help='学習のエポック数 [default 10]')
     parser.add_argument('-f', '--frequency', type=int, default=-1,
@@ -61,7 +61,7 @@ def command():
     return parser.parse_args()
 
 
-def getImageData(folder):
+def getImageData(folder, rate):
     """
     フォルダにあるファイルから学習用データとテスト用データを取得する
     [in]  folder: 探索するフォルダ
@@ -91,7 +91,7 @@ def getImageData(folder):
                 l, np_arr['x'].shape, np_arr['y'].shape)
             )
             x = np.array(np_arr['x'], dtype=np.float32)
-            y = IMG.arr2x(np.array(np_arr['y'], dtype=np.float32))
+            y = IMG.arrNx(np.array(np_arr['y'], dtype=np.float32), rate)
             train = tuple_dataset.TupleDataset(x, y)
             if(train._length > 0):
                 train_flg = True
@@ -128,12 +128,12 @@ def main(args):
     # iteration, which will be used by the PrintReport extension below.
 
     # 活性化関数を取得する
-    actfun_1 = GET.actfun(args.actfun_1)
-    actfun_2 = GET.actfun(args.actfun_2)
+    actfun1 = GET.actfun(args.actfun1)
+    actfun2 = GET.actfun(args.actfun2)
     # モデルを決定する
     model = L.Classifier(
         JC(n_unit=args.unit, rate=args.shuffle_rate,
-           actfun_1=actfun_1, actfun_2=actfun_2, dropout=args.dropout,
+           actfun1=actfun1, actfun2=actfun2, dropout=args.dropout,
            view=args.only_check),
         lossfun=GET.lossfun(args.lossfun)
     )
@@ -151,7 +151,7 @@ def main(args):
     optimizer.setup(model)
 
     # Load dataset
-    train, test = getImageData(args.in_path)
+    train, test = getImageData(args.in_path, args.shuffle_rate)
     # predict.pyでモデルを決定する際に必要なので記憶しておく
     model_param = {i: getattr(args, i) for i in dir(args) if not '_' in i[0]}
     model_param['shape'] = train[0][0].shape

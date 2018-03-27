@@ -27,8 +27,8 @@ def command():
                         help='生成される画像サイズ [default: 256 pixel]')
     parser.add_argument('-r', '--round', type=int, default=1000,
                         help='切り捨てる数 [default: 1000]')
-    parser.add_argument('-in', '--img_num', type=int, default=1000,
-                        help='画像を生成する数 [default: 1000]')
+    parser.add_argument('-in', '--img_num', type=int, default=200,
+                        help='画像を生成する数 [default: 200]')
     parser.add_argument('-on', '--obj_num', type=int, default=4,
                         help='障害物の最大数 [default: 4]')
     parser.add_argument('-hn', '--human_num', type=int, default=2,

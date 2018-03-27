@@ -100,7 +100,7 @@ def main(args):
 
     # 学習モデルを実行する
     with chainer.using_config('train', False):
-        img = IMG.resize(predict(model, x, args.batch, args.gpu), 0.5)
+        img = IMG.resize(predict(model, x, args.batch, args.gpu), 1/sr)
 
     # 生成結果を保存する
     name = F.getFilePath(args.out_path, 'predict', '.jpg')

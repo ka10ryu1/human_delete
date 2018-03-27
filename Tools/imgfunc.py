@@ -437,6 +437,19 @@ def arr2x(arr, flg=cv2.INTER_NEAREST):
     return imgs2arr(size2x(imgs))
 
 
+def arrNx(arr, rate, flg=cv2.INTER_NEAREST):
+    """
+    行列を画像に変換し、サイズをN倍にする
+    [in] arr:  N倍にする行列
+    [in] rate: 倍率
+    [in] flg:  N倍にする時のフラグ
+    [out] N倍にされた行列
+    """
+
+    imgs = arr2imgs(arr)
+    return imgs2arr(resizeN(imgs, rate))
+
+
 def imgs2arr(imgs, norm=255, dtype=np.float32, gpu=-1):
     """
     入力画像リストをChainerで利用するために変換する
