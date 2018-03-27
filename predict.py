@@ -72,8 +72,7 @@ def main(args):
     net, unit, ch, size, layer, sr, af1, af2 = GET.modelParam(args.param)
     # 学習モデルを生成する
     model = L.Classifier(
-        JC(n_unit=unit, n_out=ch,
-           rate=sr, actfun_1=af1, actfun_2=af2)
+        JC(n_unit=unit, n_out=ch, rate=sr, actfun1=af1, actfun2=af2)
     )
 
     # load_npzのpath情報を取得し、学習済みモデルを読み込む
