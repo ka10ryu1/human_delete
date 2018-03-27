@@ -149,6 +149,7 @@ def splitSQ(img, size, flg=cv2.BORDER_REPLICATE):
     img = img[:(img.shape[0] // size * size), :(img.shape[1] // size * size)]
     # 縦横の分割数を計算する
     split = (img.shape[0] // size, img.shape[1] // size)
+
     # 画像を分割する
     imgs_2d = [np.vsplit(i, split[0])
                for i in np.hsplit(img, split[1])]
@@ -194,7 +195,7 @@ def splitSQN(imgs, size, round_num=-1, flg=cv2.BORDER_REPLICATE):
         round_len = len(out_imgs) // round_num * round_num
         return np.array(out_imgs[:round_len]), (split[0], split[1])
     else:
-        return np.array(out_imgs), (split[0], split[0])
+        return np.array(out_imgs), (split[0], split[1])
 
 
 def rotate(img, angle, scale):
@@ -249,30 +250,30 @@ def rotateRN(imgs, num, level=[-10, 10], scale=1.2):
 def flip(img, num=2):
     """
     画像を回転させてデータ数を水増しする
-    [in]  img:     入力画像
-    [in]  num:     水増しする数（最大4倍）
-    [out] out_img: 出力画像
+    [in]  img:      入力画像
+    [in]  num:      水増しする数（最大4倍）
+    [out] out_imgs: 出力画像リスト
     """
 
     if(num < 1):
-        return img
+        return [img]
 
     # ベース
-    out_img = [img.copy()]
+    out_imgs = [img.copy()]
     # 上下反転を追加
     f = cv2.flip(img, 0)
-    out_img.extend(f)
+    out_imgs.append(f)
     if(num > 1):
         # 左右反転を追加
         f = cv2.flip(img, 1)
-        out_img.extend(f)
+        out_imgs.append(f)
 
     if(num > 2):
         # 上下左右反転を追加
         f = cv2.flip(cv2.flip(img, 1), 0)
-        out_img.extend(f)
+        out_imgs.append(f)
 
-    return out_img
+    return out_imgs
 
 
 def flipN(imgs, num=2):
@@ -344,7 +345,6 @@ def resizeP(img, pixel, flg=cv2.INTER_NEAREST):
     b_img = cv2.copyMakeBorder(
         r_img, 0, 2, 0, 2, cv2.BORDER_CONSTANT, value=(0, 0, 0)
     )
-
     return b_img[:pixel, :pixel]
 
 
