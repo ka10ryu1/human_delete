@@ -13,6 +13,7 @@ import chainer
 import chainer.links as L
 from chainer.cuda import to_cpu
 
+from Lib.network import JC_DDUU as JC
 from create_dataset import create
 import Tools.imgfunc as IMG
 import Tools.getfunc as GET
@@ -46,28 +47,6 @@ def command():
     return parser.parse_args()
 
 
-def encDecWrite(img, ch, quality, out_path='./result', val=-1):
-    """
-    画像の圧縮と保存を実行する
-    [in] img:      圧縮したい画像
-    [in] ch:       圧縮したい画像のチャンネル数
-    [in] quality:  圧縮率（低いほど高圧縮）
-    [in] out_path: 出力先フォルダ
-    [in] val:      保存時の連番（負数で保存しない）
-    [out] 圧縮済み画像
-    """
-
-    # 入力画像を圧縮して劣化させる
-    comp = IMG.encodeDecode(img, IMG.getCh(ch), quality)
-    # 比較のため圧縮画像を保存する
-    if(val >= 0):
-        path = F.getFilePath(out_path, 'comp-' +
-                             str(val * 10).zfill(3), '.jpg')
-        cv2.imwrite(path, comp[0])
-
-    return comp
-
-
 def predict(model, img, batch, gpu):
     """
     推論実行メイン部
@@ -92,11 +71,6 @@ def main(args):
     # jsonファイルから学習モデルのパラメータを取得する
     net, unit, ch, size, layer, sr, af1, af2 = GET.modelParam(args.param)
     # 学習モデルを生成する
-    if net == 0:
-        from Lib.network import JC_DDUU as JC
-    else:
-        from Lib.network2 import JC_UDUD as JC
-
     model = L.Classifier(
         JC(n_unit=unit, n_out=ch,
            rate=sr, actfun_1=af1, actfun_2=af2)
