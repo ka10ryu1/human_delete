@@ -80,7 +80,10 @@ def rondom_crop(img, size):
     short_side = min(img.shape[:2])
     x = np.random.randint(0, w - short_side + 1)
     y = np.random.randint(0, h - short_side + 1)
-    return IMG.resizeP(img[x:x + short_side, y:y + short_side], size)
+    if size > 1:
+        return IMG.resizeP(img[x:x + short_side, y:y + short_side], size)
+    else:
+        img[x:x + short_side, y:y + short_side]
 
 
 def getImage(path, size):
