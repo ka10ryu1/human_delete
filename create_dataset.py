@@ -61,19 +61,26 @@ def getSomeImage(path, num, size):
         img_num = np.random.choice(
             range(len(all_path)), np.random.randint(1, num), replace=False
         )
-        return [IMG.resizeP(cv2.imread(all_path[i], IMG.getCh(0)), size)
-                for i in img_num]
+        if size > 1:
+            return [IMG.resizeP(cv2.imread(all_path[i], IMG.getCh(0)), size)
+                    for i in img_num]
+        else:
+            img_num
+
     else:
         img_num = np.random.choice(range(len(all_path)), 1, replace=False)[0]
-        return IMG.resizeP(cv2.imread(all_path[img_num], IMG.getCh(0)), size)
+        if size > 1:
+            return IMG.resizeP(cv2.imread(all_path[img_num], IMG.getCh(0)), size)
+        else:
+            return cv2.imread(all_path[img_num], IMG.getCh(0))
 
 
-def rondom_crop(img):
+def rondom_crop(img, size):
     w, h = img.shape[:2]
     short_side = min(img.shape[:2])
     x = np.random.randint(0, w - short_side + 1)
     y = np.random.randint(0, h - short_side + 1)
-    return img[x:x + short_side, y:y + short_side]
+    return IMG.resizeP(img[x:x + short_side, y:y + short_side], size)
 
 
 def getImage(path, size):
@@ -88,7 +95,7 @@ def create(obj_path, h_path, bg_path,
     for i in range(create_num):
         objects = getSomeImage(obj_path, obj_num + 1, obj_size)
         human = getSomeImage(h_path, h_num + 1, obj_size)
-        background = rondom_crop(getImage(bg_path, img_size))
+        background = rondom_crop(getImage(bg_path, -1), img_size)
 
         for j in objects:
             background = IMG.paste(j, background)
