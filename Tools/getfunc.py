@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*-coding: utf-8 -*-
 #
-help = '画像処理に関する便利機能'
+help = '各種パラメータ取得に関する便利機能'
 #
 
 import os
@@ -20,6 +20,11 @@ from imgfunc import arrNx
 
 
 def datetime32():
+    """
+    時刻情報を元に衝突しにくい名前を自動で生成する
+    [out] 生成された名前
+    """
+
     now = datetime.today()
     exec_time1 = int(now.strftime('%y%m%d'))
     exec_time2 = int(now.strftime('%H%M%S'))
