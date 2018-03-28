@@ -151,7 +151,8 @@ def splitSQ(img, size, flg=cv2.BORDER_REPLICATE):
     split = (img.shape[0] // size, img.shape[1] // size)
 
     # 画像を分割する
-    imgs_2d = [np.vsplit(img, split[0]) for img in np.hsplit(img, split[1])]
+    imgs_2d = [np.vsplit(i, split[0])
+               for i in np.hsplit(img, split[1])]
     imgs_1d = [x for l in imgs_2d for x in l]
     return imgs_1d, split
 
@@ -433,7 +434,20 @@ def arr2x(arr, flg=cv2.INTER_NEAREST):
     """
 
     imgs = arr2imgs(arr)
-    return imgs2arr(size2x(imgs))
+    return imgs2arr(size2x(imgs, flg))
+
+
+def arrNx(arr, rate, flg=cv2.INTER_NEAREST):
+    """
+    行列を画像に変換し、サイズをN倍にする
+    [in] arr:  N倍にする行列
+    [in] rate: 倍率
+    [in] flg:  N倍にする時のフラグ
+    [out] N倍にされた行列
+    """
+
+    imgs = arr2imgs(arr)
+    return imgs2arr(resizeN(imgs, rate, flg))
 
 
 def imgs2arr(imgs, norm=255, dtype=np.float32, gpu=-1):
