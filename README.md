@@ -4,7 +4,7 @@
 
 ## 学習結果
 
-<img src="" width="640px">
+<img src="https://github.com/ka10ryu1/human_delete/blob/img/concat.jpg" width="640px">
 
 # 動作環境
 
@@ -44,7 +44,8 @@ $ tree >& log.txt
 │   │   ├── Lenna.bmp       > テスト用画像
 │   │   ├── Mandrill.bmp    > テスト用画像
 │   │   ├── test_getfunc.py > getfuncのテスト用コード
-│   │   └── test_imgfunc.py > imgfuncのテスト用コード'
+│   │   └── test_imgfunc.py > imgfuncのテスト用コード
+│   ├── concat.py          > 複数の画像を任意の行列で結合する
 │   ├── dot2png.py         > dot言語で記述されたファイルをPNG形式に変換する
 │   ├── func.py            > 便利機能
 │   ├── getfunc.py         > 画像処理に関する便利機能
@@ -111,21 +112,25 @@ $ ./predict.py result/*.model result/*.json
 
 - predict.jpg
 
-# Topの「学習結果」を再現
+## 推論実行（複数回連続実行）
 
-## データセット作成
+### 実行
 
-```console
-$
-```
-
-## 学習
+以下を実行することで12枚の入力画像と出力画像を連結した画像が生成される。
 
 ```console
-$
+$ ./predict_repeat.py result/*.model result/*.json
 ```
-## 推論実行
+
+以下を実行することで、生成された12枚の画像を1枚に結合できる。
 
 ```console
-$
+$ Tools/concat.py ./result/predict-00* -r 3
 ```
+
+### 生成物の確認
+
+以下のファイルがresultフォルダ生成されていれば成功。
+
+- predict-00**.jpg < 12枚
+- concat.jpg
