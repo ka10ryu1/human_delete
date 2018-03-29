@@ -4,6 +4,8 @@
 
 ## 学習結果
 
+左が入力画像（人が写っている）で、右が出力画像（人が消えている）。
+
 <img src="https://github.com/ka10ryu1/human_delete/blob/img/concat.jpg" width="640px">
 
 # 動作環境
