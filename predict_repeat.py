@@ -42,6 +42,8 @@ def command():
                         help='ミニバッチサイズ [default: 100]')
     parser.add_argument('--predict_num', '-pn', type=int, default=12,
                         help='推論実行反復回数 [default: 12]')
+    parser.add_argument('--wait', '-w', type=int, default=500,
+                        help='画像を表示させる待ち時間 [ms] [default: 500]')
     parser.add_argument('--gpu', '-g', type=int, default=-1,
                         help='GPU ID [default -1]')
     parser.add_argument('--out_path', '-o', default='./result/',
@@ -90,7 +92,7 @@ def main(args):
         img = np.hstack([x[0], img])
         cv2.imwrite(name, img)
         cv2.imshow('view', img)
-        cv2.waitKey(500)
+        cv2.waitKey(args.wait)
 
 
 if __name__ == '__main__':
