@@ -109,7 +109,9 @@ def main(args):
     optimizer.setup(model)
 
     # Load dataset
-    train, test = GET.imgData(args.in_path, args.shuffle_rate)
+    train, test = GET.imgData(args.in_path)
+    train = ResizeImgDataset(train, args.shuffle_rate)
+    test = ResizeImgDataset(test, args.shuffle_rate)
     # predict.pyでモデルを決定する際に必要なので記憶しておく
     model_param = {i: getattr(args, i) for i in dir(args) if not '_' in i[0]}
     model_param['shape'] = train[0][0].shape
