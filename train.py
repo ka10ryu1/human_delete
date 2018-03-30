@@ -6,6 +6,7 @@ help = '学習メイン部'
 
 import json
 import argparse
+import numpy as np
 
 import chainer
 import chainer.links as L
@@ -15,8 +16,28 @@ from chainer.training import extensions
 
 from Lib.network import JC_DDUU as JC
 from Lib.plot_report_log import PlotReportLog
+import Tools.imgfunc as IMG
 import Tools.getfunc as GET
 import Tools.func as F
+
+
+class ResizeImgDataset(chainer.dataset.DatasetMixin):
+    def __init__(self, dataset, rate, dtype=np.float32):
+        self._dataset = dataset
+        self._rate = rate
+        self._dtype = dtype
+        self._len = len(self._dataset)
+
+    def __len__(self):
+        # データセットの数を返します
+        return self._len
+
+    def get_example(self, i):
+        # データセットのインデックスを受け取って、データを返します
+        inputs = self._dataset[i]
+        x, y = inputs
+        y = IMG.arrNx(y, self._rate)
+        return x.astype(self._dtype), y.astype(self._dtype)
 
 
 def command():
