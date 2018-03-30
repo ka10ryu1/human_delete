@@ -6,7 +6,6 @@ help = '学習メイン部'
 
 import json
 import argparse
-import numpy as np
 
 import chainer
 import chainer.links as L
