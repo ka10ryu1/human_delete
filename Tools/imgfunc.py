@@ -327,6 +327,11 @@ def resize(img, rate, flg=cv2.INTER_NEAREST):
     [out] N倍にされた画像リスト
     """
 
+    if(rate <= 0):
+        print('rate value error(0 < rate):', rate)
+        print(fileFuncLine())
+        exit()
+
     size = (int(img.shape[1] * rate),
             int(img.shape[0] * rate))
     return cv2.resize(img, size, flg)
