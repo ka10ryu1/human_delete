@@ -55,50 +55,59 @@ def saveNPZ(x, y, name, folder, size):
     np.savez(F.getFilePath(folder, name + size_str + num_str), x=x, y=y)
 
 
-def getSomeImage(path, num, size):
-    all_path = [os.path.join(path, f) for f in os.listdir(path)]
+def getSomeImage(imgs, num, size):
+    imgs = np.array(imgs)
+    label = range(len(imgs))
     if(num > 1):
-        img_num = np.random.choice(
-            range(len(all_path)), np.random.randint(1, num), replace=False
+        pickup = np.random.choice(
+            label, np.random.randint(1, num), replace=False
         )
         if size > 1:
-            return [IMG.resizeP(cv2.imread(all_path[i], IMG.getCh(0)), size)
-                    for i in img_num]
+            return [IMG.resizeP(img, size) for img in imgs[pickup]]
         else:
-            img_num
+            imgs[pickup]
 
     else:
-        img_num = np.random.choice(range(len(all_path)), 1, replace=False)[0]
+        pickup = np.random.choice(label, 1, replace=False)[0]
         if size > 1:
-            return IMG.resizeP(cv2.imread(all_path[img_num], IMG.getCh(0)), size)
+            return IMG.resizeP(imgs[pickup], size)
         else:
-            return cv2.imread(all_path[img_num], IMG.getCh(0))
+            return imgs[pickup]
 
 
 def rondom_crop(img, size):
-    w, h = img.shape[:2]
-    short_side = min(img.shape[:2])
+    w, h = img.shape[: 2]
+    short_side = min(img.shape[: 2])
     x = np.random.randint(0, w - short_side + 1)
     y = np.random.randint(0, h - short_side + 1)
     if size > 1:
-        return IMG.resizeP(img[x:x + short_side, y:y + short_side], size)
+        return IMG.resizeP(img[x: x + short_side, y: y + short_side], size)
     else:
-        img[x:x + short_side, y:y + short_side]
+        img[x: x + short_side, y: y + short_side]
 
 
-def getImage(path, size):
-    return getSomeImage(path, 1, size)
+def getImage(imgs, size):
+    return getSomeImage(imgs, 1, size)
+
+
+def getImgs(path):
+    return [cv2.imread(os.path.join(path, f), IMG.getCh(0))
+            for f in os.listdir(path)]
 
 
 def create(obj_path, h_path, bg_path,
            obj_size, img_size,
            obj_num, h_num, create_num):
+    obj = getImgs(obj_path)
+    hum = getImgs(h_path)
+    bg = getImgs(bg_path)
+
     x = []
     y = []
     for i in range(create_num):
-        objects = getSomeImage(obj_path, obj_num + 1, obj_size)
-        human = getSomeImage(h_path, h_num + 1, obj_size)
-        background = rondom_crop(getImage(bg_path, -1), img_size)
+        objects = getSomeImage(obj, obj_num + 1, obj_size)
+        human = getSomeImage(hum, h_num + 1, obj_size)
+        background = rondom_crop(getImage(bg, -1), img_size)
 
         for j in objects:
             background = IMG.paste(j, background)
