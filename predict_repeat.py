@@ -34,7 +34,11 @@ def command():
                         help='・ (default: ./Image/background/')
     parser.add_argument('-os', '--obj_size', type=int, default=64,
                         help='挿入する画像サイズ [default: 64 pixel]')
-    parser.add_argument('-on', '--obj_num', type=int, default=6,
+    parser.add_argument('-on', '--obj_num', type=int, default=4,
+                        help='障害物の最大数 [default: 4]')
+    parser.add_argument('-hn', '--human_num', type=int, default=2,
+                        help='人間の最大数 [default: 2]')
+    parser.add_argument('-in', '--img_num', type=int, default=6,
                         help='画像を生成する数 [default: 6]')
     parser.add_argument('-is', '--img_size', type=int, default=256,
                         help='生成される画像サイズ [default: 256 pixel]')
@@ -80,14 +84,15 @@ def main(args):
                       args.human_path,
                       args.background_path,
                       args.obj_size, args.img_size,
-                      args.obj_num, 1, 1)
+                      args.obj_num, args.human_num, 1)
 
         # 学習モデルを実行する
         with chainer.using_config('train', False):
-            img = IMG.resize(predict(model, x, args.batch, args.gpu), 1/sr)
+            img = IMG.resize(predict(model, x, args.batch, args.gpu), 1 / sr)
 
         # 生成結果を保存する
-        name = F.getFilePath(args.out_path, 'predict-'+str(i).zfill(4), '.jpg')
+        name = F.getFilePath(args.out_path, 'predict-' +
+                             str(i).zfill(4), '.jpg')
         print('save:', name)
         img = np.hstack([x[0], img])
         cv2.imwrite(name, img)
