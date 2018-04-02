@@ -1,0 +1,23 @@
+{
+    "actfun1": "relu",
+    "actfun2": "sigmoid",
+    "batchsize": 8,
+    "dropout": 0.2,
+    "epoch": 500,
+    "frequency": 100,
+    "gpu_id": 0,
+    "in_path": "./result/",
+    "lossfun": "mse",
+    "only_check": false,
+    "optimizer": "adam",
+    "out_path": "result/02",
+    "plot": true,
+    "resume": "result/01/13lkh5jo_300.snapshot",
+    "shape": [
+        3,
+        256,
+        256
+    ],
+    "shuffle_rate": 4,
+    "unit": 64
+}
