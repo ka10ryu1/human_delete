@@ -26,12 +26,14 @@ def command():
                         help='使用する学習済みモデル')
     parser.add_argument('param',
                         help='使用するモデルパラメータ')
+    parser.add_argument('-i', '--image', default='',
+                        help='別途使用したい画像があれば')
     parser.add_argument('-ot', '--other_path', default='./Image/other/',
-                        help='・ (default: ./Image/other/')
+                        help='動物、怪獣の画像フォルダ (default: ./Image/other/')
     parser.add_argument('-hu', '--human_path', default='./Image/people/',
-                        help='・ (default: ./Image/people/')
+                        help='人間の画像フォルダ (default: ./Image/people/')
     parser.add_argument('-bg', '--background_path', default='./Image/background/',
-                        help='・ (default: ./Image/background/')
+                        help='背景の画像フォルダ (default: ./Image/background/')
     parser.add_argument('-os', '--obj_size', type=int, default=64,
                         help='挿入する画像サイズ [default: 64 pixel]')
     parser.add_argument('-on', '--obj_num', type=int, default=6,
@@ -91,12 +93,21 @@ def main(args):
         model.to_gpu()
 
     # 画像の生成
-    x, _ = create(args.other_path,
-                  args.human_path,
-                  args.background_path,
-                  args.obj_size, args.img_size,
-                  args.obj_num, 1, 1)
+    if args.image == '':
+        x, _ = create(args.other_path,
+                      args.human_path,
+                      args.background_path,
+                      args.obj_size, args.img_size,
+                      args.obj_num, 1, 1)
+    elif IMG.isImgPath(args.image):
+        x = cv2.imread(args.image, IMG.getCh(0))
+        w, h = x.shape[:2]
+        x = np.array(x).reshape(1, w, h, -1)
+    else:
+        print('input image path is not found:', args.image)
+        exit()
 
+    print(x.shape)
     # 学習モデルを実行する
     with chainer.using_config('train', False):
         img = IMG.resize(predict(model, x, args.batch, args.gpu), 1/sr)

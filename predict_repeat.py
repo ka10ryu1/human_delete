@@ -27,11 +27,11 @@ def command():
     parser.add_argument('param',
                         help='使用するモデルパラメータ')
     parser.add_argument('-ot', '--other_path', default='./Image/other/',
-                        help='・ (default: ./Image/other/')
+                        help='動物、怪獣の画像フォルダ (default: ./Image/other/')
     parser.add_argument('-hu', '--human_path', default='./Image/people/',
-                        help='・ (default: ./Image/people/')
+                        help='人間の画像フォルダ (default: ./Image/people/')
     parser.add_argument('-bg', '--background_path', default='./Image/background/',
-                        help='・ (default: ./Image/background/')
+                        help='背景の画像フォルダ (default: ./Image/background/')
     parser.add_argument('-os', '--obj_size', type=int, default=64,
                         help='挿入する画像サイズ [default: 64 pixel]')
     parser.add_argument('-on', '--obj_num', type=int, default=4,
