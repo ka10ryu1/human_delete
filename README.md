@@ -38,6 +38,9 @@ $ tree >& log.txt
 ├── Lib
 │   ├── network.py > human_deleteのネットワーク部分
 │   └── plot_report_log.py
+├── Model
+│   ├── demo.model > デモ用モデル
+│   └── param.json > デモ用パラメータファイル
 ├── README.md
 ├── Tools
 │   ├── LICENSE
@@ -59,10 +62,19 @@ $ tree >& log.txt
 ├── clean_all.sh
 ├── create_dataset.py > 画像を読み込んでデータセットを作成する
 ├── predict.py        > モデルとモデルパラメータを利用して推論実行する
+├── predict_repeat.py > predictを繰り返し実行する
 └── train.py          > 学習メイン部
 ```
 
-# チュートリアル
+# とりあえず試す
+
+以下を入力すると、上記の学習結果を再現できるが、生成される画像は異なる。
+
+```console
+$ ./predict_repeat.py Model/*
+```
+
+# チュートリアル（モデルを自作する）
 
 GPU環境でそこそこepochまわせないとまともな結果にならないので注意。
 
