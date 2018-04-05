@@ -128,7 +128,7 @@ def cutN(imgs, size, round_num=-1, flg=cv2.BORDER_REPLICATE):
         return np.array(out_imgs)
 
 
-def splitSQ(img, size, flg=cv2.BORDER_REPLICATE):
+def splitSQ(img, size, flg=cv2.BORDER_REPLICATE, array=True):
     """
     入力された画像を正方形に分割する
     [in]  img:   入力画像
@@ -143,18 +143,24 @@ def splitSQ(img, size, flg=cv2.BORDER_REPLICATE):
         print(fileFuncLine())
         exit()
 
-    # 画像を分割する際に端が切れてしまうのを防ぐために余白を追加する
-    img = cv2.copyMakeBorder(img, 0, size, 0, size, flg)
-    # 画像を分割しやすいように画像サイズを変更する
-    img = img[:(img.shape[0] // size * size), :(img.shape[1] // size * size)]
+    h, w = img.shape[:2]
+    # 画像がちょうどsizeで分割できない場合に以下を実行
+    if (h/size + w/size) > (h//size + w//size):
+        # 端が切れてしまうのを防ぐために余白を追加する
+        img = cv2.copyMakeBorder(img, 0, size, 0, size, flg)
+        # 画像を分割できるように画像サイズを変更する
+        img = img[:(img.shape[0] // size * size), :(img.shape[1] // size * size)]
+
     # 縦横の分割数を計算する
     split = (img.shape[0] // size, img.shape[1] // size)
 
     # 画像を分割する
-    imgs_2d = [np.vsplit(i, split[0])
-               for i in np.hsplit(img, split[1])]
+    imgs_2d = [np.vsplit(i, split[0]) for i in np.hsplit(img, split[1])]
     imgs_1d = [x for l in imgs_2d for x in l]
-    return imgs_1d, split
+    if array:
+        return np.array(imgs_1d), split
+    else:
+        return imgs_1d, split
 
 
 def splitSQN(imgs, size, round_num=-1, flg=cv2.BORDER_REPLICATE):
@@ -178,7 +184,7 @@ def splitSQN(imgs, size, round_num=-1, flg=cv2.BORDER_REPLICATE):
     out_imgs = []
     split = []
     for img in imgs:
-        i, s = splitSQ(img, size, flg)
+        i, s = splitSQ(img, size, flg, False)
         out_imgs.extend(i)
         split.extend(s)
 
