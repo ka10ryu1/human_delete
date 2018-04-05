@@ -33,6 +33,32 @@ def getCh(ch):
         return cv2.IMREAD_UNCHANGED
 
 
+def blank(size, color, dtype=np.uint8):
+
+    if np.min(size) < 0:
+        print('[Error] size > 0: {0}'.format(size))
+        print(fileFuncLine())
+        exit()
+
+    if len(size) == 2:
+        size = (size[0], size[1], 1)
+
+    if type(color) is int:
+        img = np.zeros(size, dtype=dtype)
+        if color < 0:
+            color = 0
+
+        img.fill(color)
+        return img
+
+    if size[2] != 3:
+        size = (size[0], size[1], 3)
+
+    img = np.zeros(size, dtype=dtype)
+    img[:, :, :] = color
+    return img
+
+
 def isImgPath(name):
     """
     入力されたパスが画像か判定する
@@ -144,11 +170,10 @@ def splitSQ(img, size, flg=cv2.BORDER_REPLICATE, array=True):
         exit()
 
     h, w = img.shape[:2]
-    # 画像がちょうどsizeで分割できない場合に以下を実行
     if (h/size + w/size) > (h//size + w//size):
-        # 端が切れてしまうのを防ぐために余白を追加する
+        # 画像を分割する際に端が切れてしまうのを防ぐために余白を追加する
         img = cv2.copyMakeBorder(img, 0, size, 0, size, flg)
-        # 画像を分割できるように画像サイズを変更する
+        # 画像を分割しやすいように画像サイズを変更する
         img = img[:(img.shape[0] // size * size), :(img.shape[1] // size * size)]
 
     # 縦横の分割数を計算する
@@ -333,10 +358,8 @@ def resize(img, rate, flg=cv2.INTER_NEAREST):
     [out] N倍にされた画像リスト
     """
 
-    if(rate <= 0):
-        print('rate value error(0 < rate):', rate)
-        print(fileFuncLine())
-        exit()
+    if rate < 0:
+        return img
 
     size = (int(img.shape[1] * rate),
             int(img.shape[0] * rate))
@@ -382,40 +405,52 @@ def size2x(imgs, flg=cv2.INTER_NEAREST):
     return [resize(i, 2, flg) for i in imgs]
 
 
-def paste(fg, bg, mask_flg=True, random_flg=True):
+def paste(fg, bg, rot=0, x=0, y=0, mask_flg=True, rand_rot_flg=True, rand_pos_flg=True):
     """
     背景に前景を重ね合せる
     [in]  fg:         重ね合せる背景
     [in]  bg:         重ね合せる前景
     [in]  mask_flg:   マスク処理を大きめにするフラグ
-    [in]  random_flg: 前景をランダムに配置するフラグ
+    [in]  rand_rot_flg: 前景をランダムに回転するフラグ
+    [in]  rand_pos_flg: 前景をランダムに配置するフラグ
     [out] 重ね合せた画像
     """
 
     # Load two images
     img1 = bg.copy()
-    if random_flg:
-        img2, _ = rotateR(fg, [-90, 90], 1.0)
+    if rand_rot_flg:
+        img2, rot = rotateR(fg, [-90, 90], 1.0)
     else:
         img2 = fg.copy()
 
     # I want to put logo on top-left corner, So I create a ROI
     w1, h1 = img1.shape[:2]
     w2, h2 = img2.shape[:2]
-    if random_flg:
+    if rand_pos_flg:
         x = np.random.randint(0, w1 - w2 + 1)
         y = np.random.randint(0, w1 - w2 + 1)
-    else:
-        x = 0
-        y = 0
 
     roi = img1[x:x + w2, y:y + h2]
 
+    def masked(img):
+        if len(img.shape) < 3:
+            return False
+        elif img.shape[2] != 4:
+            return False
+        else:
+            return True
+
     # Now create a mask of logo and create its inverse mask also
-    mask = img2[:, :, 3]
+    if not masked(img2):
+        mask = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+        ret, mask = cv2.threshold(
+            cv2.bitwise_not(mask), 10, 255, cv2.THRESH_BINARY
+        )
+    else:
+        mask = img2[:, :, 3]
+
     ret, mask_inv = cv2.threshold(
-        cv2.bitwise_not(mask),
-        200, 255, cv2.THRESH_BINARY
+        cv2.bitwise_not(mask), 200, 255, cv2.THRESH_BINARY
     )
 
     if mask_flg:
@@ -433,7 +468,7 @@ def paste(fg, bg, mask_flg=True, random_flg=True):
     # Put logo in ROI and modify the main image
     dst = cv2.add(img1_bg, img2_fg)
     img1[x:x + w2, y:y + h2] = dst
-    return img1
+    return img1, (rot, x, y)
 
 
 def arr2x(arr, flg=cv2.INTER_NEAREST):
