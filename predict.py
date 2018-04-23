@@ -91,6 +91,8 @@ def main(args):
     if args.gpu >= 0:
         chainer.cuda.get_device_from_id(args.gpu).use()
         model.to_gpu()
+    else:
+        model.to_intel64()
 
     # 画像の生成
     if args.image == '':
