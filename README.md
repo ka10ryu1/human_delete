@@ -10,11 +10,11 @@
 
 # 動作環境
 
-- **Ubuntu** 16.04.3 LTS ($ cat /etc/issue)
+- **Ubuntu** 16.04.4 LTS ($ cat /etc/issue)
 - **Python** 3.5.2 ($ python3 -V)
-- **chainer** 3.5 ($ pip3 show chainer | grep Ver)
+- **chainer** 4.0.0 ($ pip3 show chainer | grep Ver)
 - **numpy** 1.14.2 ($ pip3 show numpy | grep Ver)
-- **cupy** 2.4 ($ pip3 show cupy | grep Ver)
+- **cupy** 4.0.0 ($ pip3 show cupy | grep Ver)
 - **opencv-python** 3.4.0.12 ($ pip3 show opencv-python | grep Ver)
 
 # ファイル構成
@@ -53,7 +53,7 @@ $ tree >& log.txt
 │   ├── concat.py          > 複数の画像を任意の行列で結合する
 │   ├── dot2png.py         > dot言語で記述されたファイルをPNG形式に変換する
 │   ├── func.py            > 便利機能
-│   ├── getfunc.py         > 画像処理に関する便利機能
+│   ├── getfunc.py         > 各種パラメータ取得に関する便利機能
 │   ├── imgfunc.py         > 画像処理に関する便利機能
 │   ├── npz2jpg.py         > 作成したデータセット（.npz）の中身を画像として出力する
 │   ├── plot_diff.py       > logファイルの複数比較
@@ -139,7 +139,7 @@ $ ./predict_repeat.py result/*.model result/*.json
 以下を実行することで、生成された12枚の画像を1枚に結合できる。
 
 ```console
-$ Tools/concat.py ./result/predict-00* -r 3
+$ Tools/concat.py ./result/predict-00*
 ```
 
 ### 生成物の確認
