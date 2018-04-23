@@ -56,48 +56,99 @@ def saveNPZ(x, y, name, folder, size):
 
 
 def getSomeImg(imgs, num, size):
+    """
+    画像リストから任意の数画像をランダムに取得し、大きさも揃える
+    [in]  imgs:ランダムに取得したい画像リスト
+    [in]  num: 取得する数（1以下の数値で1枚）
+    [in]  size:画像サイズ [pixel]
+    [out] 取得した画像リスト
+    """
+
     imgs = np.array(imgs)
     label = range(len(imgs))
+    # 複数枚取得する
     if(num > 1):
         pickup = np.random.choice(
             label, np.random.randint(1, num), replace=False
         )
+        # リサイズする
         if size > 1:
             return [IMG.resizeP(img, size) for img in imgs[pickup]]
+        # リサイズしない
         else:
             imgs[pickup]
 
+    # 一枚取得する
     else:
         pickup = np.random.choice(label, 1, replace=False)[0]
+        # リサイズする
         if size > 1:
             return IMG.resizeP(imgs[pickup], size)
+        # リサイズしない
         else:
             return imgs[pickup]
 
 
 def rondom_crop(img, size):
+    """
+    画像をランダムに切り取る
+    ※横長の画像に対して有効
+    [in]  img:  切り取りたい画像
+    [in]  size: 切り取るサイズ（正方形）
+    [out] 切り取った画像
+    """
+
     w, h = img.shape[: 2]
+    # 短辺を取得
     short_side = min(img.shape[: 2])
     x = np.random.randint(0, w - short_side + 1)
     y = np.random.randint(0, h - short_side + 1)
+    # リサイズする
     if size > 1:
         return IMG.resizeP(img[x: x + short_side, y: y + short_side], size)
+    # リサイズしない
     else:
         return img[x: x + short_side, y: y + short_side]
 
 
 def getImg(imgs, size):
+    """
+    画像リストから画像を一枚取得する
+    [in]  imgs: 取得したい画像リスト
+    [in]  size: 画像のサイズ
+    [out] 取得したい画像
+    """
+
     return getSomeImg(imgs, 1, size)
 
 
 def getImgN(path):
+    """
+    入力されたフォルダにある画像を全て読み込む
+    [in] path:
+    [out] 読みこんだ画像リスト
+    """
+
     return [cv2.imread(os.path.join(path, f), IMG.getCh(0))
             for f in os.listdir(path)]
 
 
 def create(obj_path, h_path, bg_path,
-           obj_size, img_size,
-           obj_num, h_num, create_num):
+           obj_size, img_size, obj_num, img_num, create_num):
+    """
+    前景（障害物、対象物）と背景をいい感じに重ね合わせてデータセットを作成する
+    [in]  obj_path:   障害物の画像があるフォルダのパス
+    [in]  h_path:     対象物の画像があるフォルダのパス
+    [in]  bg_path:    背景の画像があるフォルダのパス
+    [in]  obj_size:   障害物のサイズ
+    [in]  img_size:   対象物のサイズ
+    [in]  obj_num:    障害物の数
+    [in]  img_num:    対象物の数
+    [in]  create_num: 生成する画像の枚数
+    [out] 生成された入力画像
+    [out] 生成された正解画像
+    """
+
     obj = getImgN(obj_path)
     hum = getImgN(h_path)
     bg = getImgN(bg_path)
@@ -106,7 +157,7 @@ def create(obj_path, h_path, bg_path,
     y = []
     for i in range(create_num):
         objects = getSomeImg(obj, obj_num + 1, obj_size)
-        human = getSomeImg(hum, h_num + 1, obj_size)
+        human = getSomeImg(hum, img_num + 1, obj_size)
         background = rondom_crop(getImg(bg, -1), img_size)
 
         for j in objects:
