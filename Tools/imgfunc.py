@@ -34,23 +34,36 @@ def getCh(ch):
 
 
 def blank(size, color, dtype=np.uint8):
+    """
+    単色画像を生成する
+    [in]  size: 生成する画像サイズ [h,w,ch]（chがない場合は1を設定）
+    [in]  color: 色（intでグレー、tupleでカラー）
+    [in]  dtype: データ型
+    [out] img:   生成した単色画像
+    """
 
+    # サイズに負数がある場合はエラー
     if np.min(size) < 0:
         print('[Error] size > 0: {0}'.format(size))
         print(fileFuncLine())
         exit()
 
+    # サイズに縦横しか含まれていない場合はチャンネル追加
     if len(size) == 2:
         size = (size[0], size[1], 1)
 
+    # 色がintの場合（0 < color < 255）
     if type(color) is int:
         img = np.zeros(size, dtype=dtype)
         if color < 0:
             color = 0
+        elif color > 255:
+            color = 255
 
         img.fill(color)
         return img
 
+    # チャンネルが3じゃない時は3にする
     if size[2] != 3:
         size = (size[0], size[1], 3)
 
@@ -164,28 +177,39 @@ def splitSQ(img, size, flg=cv2.BORDER_REPLICATE, array=True):
     [out] split: 縦横の分割情報
     """
 
-    if size <= 1:
-        print('[Error] img.shape({0}), size({1})'.format(img.shape, size))
-        print(fileFuncLine())
-        exit()
+    def arrayChk(x, flg):
+        if flg:
+            return np.array(x)
+        else:
+            return x
+
+    def square(img):
+        width = np.min(img.shape[:2])
+        return img[:width, :width]
 
     h, w = img.shape[:2]
-    if (h/size + w/size) > (h//size + w//size):
-        # 画像を分割する際に端が切れてしまうのを防ぐために余白を追加する
-        img = cv2.copyMakeBorder(img, 0, size, 0, size, flg)
-        # 画像を分割しやすいように画像サイズを変更する
-        img = img[:(img.shape[0] // size * size), :(img.shape[1] // size * size)]
+    split = (h // size, w // size)
+
+    # sizeが負数だと分割しないでそのまま返す
+    if size <= 1:
+        return arrayChk([square(img)], array), (1, 1)
+
+    # sizeが入力画像よりも大きい場合は分割しないでそのまま返す
+    if split[0] == 0 or split[1] == 0:
+        return arrayChk([square(img)], array), (1, 1)
 
     # 縦横の分割数を計算する
-    split = (img.shape[0] // size, img.shape[1] // size)
+    if (h / size + w / size) > (h // size + w // size):
+        # 画像を分割する際に端が切れてしまうのを防ぐために余白を追加する
+        width = int(size * 0.2)
+        img = cv2.copyMakeBorder(img, 0, width, 0, width, flg)
+        # 画像を分割しやすいように画像サイズを変更する
+        img = img[:split[0] * size, :split[1] * size]
 
     # 画像を分割する
     imgs_2d = [np.vsplit(i, split[0]) for i in np.hsplit(img, split[1])]
     imgs_1d = [x for l in imgs_2d for x in l]
-    if array:
-        return np.array(imgs_1d), split
-    else:
-        return imgs_1d, split
+    return arrayChk(imgs_1d, array), split
 
 
 def splitSQN(imgs, size, round_num=-1, flg=cv2.BORDER_REPLICATE):
@@ -229,7 +253,7 @@ def splitSQN(imgs, size, round_num=-1, flg=cv2.BORDER_REPLICATE):
         return np.array(out_imgs), (split[0], split[1])
 
 
-def rotate(img, angle, scale):
+def rotate(img, angle, scale, border=(0, 0, 0)):
     """
     画像を回転（反転）させる
     [in]  img:   回転させる画像
@@ -240,10 +264,10 @@ def rotate(img, angle, scale):
 
     size = img.shape[:2]
     mat = cv2.getRotationMatrix2D((size[0] // 2, size[1] // 2), angle, scale)
-    return cv2.warpAffine(img, mat, size, flags=cv2.INTER_CUBIC)
+    return cv2.warpAffine(img, mat, size, flags=cv2.INTER_CUBIC, borderValue=border)
 
 
-def rotateR(img, level=[-10, 10], scale=1.2):
+def rotateR(img, level=[-10, 10], scale=1.2, border=(0, 0, 0)):
     """
     ランダムに画像を回転させる
     [in]  img:   回転させる画像
@@ -253,10 +277,10 @@ def rotateR(img, level=[-10, 10], scale=1.2):
     """
 
     angle = np.random.randint(level[0], level[1])
-    return rotate(img, angle, scale), angle
+    return rotate(img, angle, scale, border), angle
 
 
-def rotateRN(imgs, num, level=[-10, 10], scale=1.2):
+def rotateRN(imgs, num, level=[-10, 10], scale=1.2, border=(0, 0, 0)):
     """
     画像リストをランダムに画像を回転させる
     [in]  img:   回転させる画像
@@ -271,7 +295,7 @@ def rotateRN(imgs, num, level=[-10, 10], scale=1.2):
     out_angle = []
     for n in range(num):
         for img in imgs:
-            i, a = rotateR(img, level, scale)
+            i, a = rotateR(img, level, scale, border)
             out_imgs.append(i)
             out_angle.append(a)
 
@@ -420,8 +444,12 @@ def paste(fg, bg, rot=0, x=0, y=0, mask_flg=True, rand_rot_flg=True, rand_pos_fl
     img1 = bg.copy()
     if rand_rot_flg:
         img2, rot = rotateR(fg, [-90, 90], 1.0)
+
+    white = (255, 255, 255)
+    if rand_rot_flg:
+        img2, rot = rotateR(fg, [-90, 90], 1.0, white)
     else:
-        img2 = fg.copy()
+        img2 = rotate(fg, rot, 1.0, white)
 
     # I want to put logo on top-left corner, So I create a ROI
     w1, h1 = img1.shape[:2]
@@ -503,15 +531,14 @@ def arrNx(arr, rate, flg=cv2.INTER_NEAREST):
 
 def img2arr(img, norm=255, dtype=np.float32, gpu=-1):
     try:
-        w, h, ch = img.shape
+        w, h, _ = img.shape
     except:
-        w, h = img.shape
-        ch = 1
+        w, h = img.shape[:2]
 
     if(gpu >= 0):
-        return xp.array(img, dtype=dtype).reshape((ch, w, h)) / norm
+        return xp.array(img, dtype=dtype).reshape((-1, w, h)) / norm
     else:
-        return np.array(img, dtype=dtype).reshape((ch, w, h)) / norm
+        return np.array(img, dtype=dtype).reshape((-1, w, h)) / norm
 
 
 def imgs2arr(imgs, norm=255, dtype=np.float32, gpu=-1):
@@ -537,7 +564,7 @@ def imgs2arr(imgs, norm=255, dtype=np.float32, gpu=-1):
 
 
 def arr2img(arr, norm=255, dtype=np.uint8):
-    ch, size = arr.shape[0], arr.shape[1]
+    ch, size = arr.shape[-3], arr.shape[-2]
     y = np.array(arr).reshape((size, size, ch)) * 255
     return np.array(y, dtype=np.uint8)
 

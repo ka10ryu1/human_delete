@@ -43,10 +43,10 @@ class TestImgFunc(unittest.TestCase):
         self.assertEqual(np.sum(img), 0)
         img = IMG.blank((128, 128, 3), (255, 255, 255))
         self.assertEqual(img.shape, (128, 128, 3))
-        self.assertEqual(np.sum(img), 255*128*128*3)
+        self.assertEqual(np.sum(img), 255 * 128 * 128 * 3)
         img = IMG.blank((128, 128), (255, 255, 255))
         self.assertEqual(img.shape, (128, 128, 3))
-        self.assertEqual(np.sum(img), 255*128*128*3)
+        self.assertEqual(np.sum(img), 255 * 128 * 128 * 3)
 
     def test_isImgPath(self):
         self.assertTrue(IMG.isImgPath(lenna_path))
@@ -92,6 +92,16 @@ class TestImgFunc(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             IMG.splitSQN([l, m], 32, 1000)
+
+        print(l.shape, m.shape)
+        imgs, split = IMG.splitSQN([l, m], 1024)
+        self.assertEqual(imgs.shape, (2, 256, 256, 3))
+        self.assertEqual(split, (1, 1))
+
+        bk = IMG.blank((100, 120, 3), 255)
+        imgs, split = IMG.splitSQN([bk], 1024)
+        self.assertEqual(imgs.shape, (1, 100, 100, 3))
+        self.assertEqual(split, (1, 1))
 
         l = cv2.imread(lenna_path, IMG.getCh(1))
         m = cv2.imread(mandrill_path, IMG.getCh(1))
