@@ -432,9 +432,12 @@ def size2x(imgs, flg=cv2.INTER_NEAREST):
 def paste(fg, bg, rot=0, x=0, y=0, mask_flg=True, rand_rot_flg=True, rand_pos_flg=True):
     """
     背景に前景を重ね合せる
-    [in]  fg:         重ね合せる背景
-    [in]  bg:         重ね合せる前景
-    [in]  mask_flg:   マスク処理を大きめにするフラグ
+    [in]  fg:           重ね合せる前景
+    [in]  bg:           重ね合せる背景
+    [in]  rot:          重ね合わせ時の前景回転角
+    [in]  x:            重ね合わせ時の前景x位置
+    [in]  y:            重ね合わせ時の前景y位置
+    [in]  mask_flg:     マスク処理を大きめにするフラグ
     [in]  rand_rot_flg: 前景をランダムに回転するフラグ
     [in]  rand_pos_flg: 前景をランダムに配置するフラグ
     [out] 重ね合せた画像
