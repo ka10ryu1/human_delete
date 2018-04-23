@@ -109,7 +109,6 @@ def main(args):
         print('input image path is not found:', args.image)
         exit()
 
-    print(x.shape)
     # 学習モデルを実行する
     with chainer.using_config('train', False):
         img = IMG.resize(predict(model, x, args.batch, args.gpu), 1/sr)

@@ -55,7 +55,7 @@ def saveNPZ(x, y, name, folder, size):
     np.savez(F.getFilePath(folder, name + size_str + num_str), x=x, y=y)
 
 
-def getSomeImage(imgs, num, size):
+def getSomeImg(imgs, num, size):
     imgs = np.array(imgs)
     label = range(len(imgs))
     if(num > 1):
@@ -83,14 +83,14 @@ def rondom_crop(img, size):
     if size > 1:
         return IMG.resizeP(img[x: x + short_side, y: y + short_side], size)
     else:
-        img[x: x + short_side, y: y + short_side]
+        return img[x: x + short_side, y: y + short_side]
 
 
-def getImage(imgs, size):
-    return getSomeImage(imgs, 1, size)
+def getImg(imgs, size):
+    return getSomeImg(imgs, 1, size)
 
 
-def getImgs(path):
+def getImgN(path):
     return [cv2.imread(os.path.join(path, f), IMG.getCh(0))
             for f in os.listdir(path)]
 
@@ -98,23 +98,23 @@ def getImgs(path):
 def create(obj_path, h_path, bg_path,
            obj_size, img_size,
            obj_num, h_num, create_num):
-    obj = getImgs(obj_path)
-    hum = getImgs(h_path)
-    bg = getImgs(bg_path)
+    obj = getImgN(obj_path)
+    hum = getImgN(h_path)
+    bg = getImgN(bg_path)
 
     x = []
     y = []
     for i in range(create_num):
-        objects = getSomeImage(obj, obj_num + 1, obj_size)
-        human = getSomeImage(hum, h_num + 1, obj_size)
-        background = rondom_crop(getImage(bg, -1), img_size)
+        objects = getSomeImg(obj, obj_num + 1, obj_size)
+        human = getSomeImg(hum, h_num + 1, obj_size)
+        background = rondom_crop(getImg(bg, -1), img_size)
 
         for j in objects:
-            background = IMG.paste(j, background)
+            background, _ = IMG.paste(j, background)
 
         y.append(background[:, :, :3])
         for k in human:
-            background = IMG.paste(k, background)
+            background, _ = IMG.paste(k, background)
 
         x.append(background[:, :, :3])
 
