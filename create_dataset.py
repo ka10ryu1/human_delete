@@ -136,8 +136,12 @@ def getImgN(path):
     [out] 読みこんだ画像リスト
     """
 
+    if not os.path.isdir(path):
+        print('path not found:', path)
+        exit(1)
+
     return [cv2.imread(os.path.join(path, f), IMG.getCh(0))
-            for f in os.listdir(path)]
+            for f in os.listdir(path) if IMG.isImgPath(f)]
 
 
 def create(obj_path, h_path, bg_path,
