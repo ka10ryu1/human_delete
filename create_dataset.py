@@ -140,8 +140,9 @@ def getImgN(path):
         print('path not found:', path)
         exit(1)
 
-    return [cv2.imread(os.path.join(path, f), IMG.getCh(0))
-            for f in os.listdir(path) if IMG.isImgPath(f)]
+    from os.path import join as opj
+    return [cv2.imread(opj(path, f), IMG.getCh(0))
+            for f in os.listdir(path) if IMG.isImgPath(opj(path, f))]
 
 
 def create(obj_path, h_path, bg_path,
