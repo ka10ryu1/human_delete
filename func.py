@@ -8,6 +8,8 @@ import os
 import inspect
 from pathlib import Path
 from watchdog.events import FileSystemEventHandler
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 class ChangeHandler(FileSystemEventHandler):
@@ -36,7 +38,7 @@ class ChangeHandler(FileSystemEventHandler):
 
 def argsPrint(p, bar=30):
     """
-    argparseの parse_args() で生成されたオブジェクトを入力すると、
+    argparseのparse_args() で生成されたオブジェクトを入力すると、
     integersとaccumulateを自動で取得して表示する
     [in] p: parse_args()で生成されたオブジェクト
     [in] bar: 区切りのハイフンの数
@@ -54,6 +56,31 @@ def argsPrint(p, bar=30):
     print('-' * bar)
 
 
+def args2dict(args):
+    """
+    argparseのparse_args() で生成されたオブジェクトを取得して辞書型に変換する
+    [in]  parse_args() で生成されたオブジェクト
+    [out] inの辞書型に変換した結果
+    """
+    return {i: getattr(args, i) for i in dir(args) if not '_' in i[0]}
+
+
+def dict2json(folder, name, mydict, indent=4, sort_keys=True):
+    """
+    辞書型のオブジェクトをjson形式で保存する
+    [in]  folder:    保存するフォルダ
+    [in]  name:      保存するファイル名
+    [in]  mydict:    保存したい辞書型のオブジェクト
+    [in]  indent:    jsonで保存する際のインデント用のスペースの数
+    [in]  sort_keys: jsonで保存する際の辞書をソートするフラグ
+    """
+
+    import json
+    path = getFilePath(folder, name, '.json')
+    with open(path, 'w') as f:
+        json.dump(mydict, f, indent=4, sort_keys=True)
+
+
 def checkModelType(path):
     """
     入力されたパスが.modelか.snapshotかそれ以外か判定し、
@@ -66,14 +93,14 @@ def checkModelType(path):
     name, ext = os.path.splitext(os.path.basename(path))
     load_path = ''
     if(ext == '.model'):
-        print('model read:', path)
+        logger.debug('model read: {}'.format(path))
     elif(ext == '.snapshot'):
-        print('snapshot read', path)
+        logger.debug('snapshot read: {}'.format(path))
         load_path = 'updater/model:main/'
     else:
-        print('model read error')
-        print(fileFuncLine())
-        exit()
+        logger.error('model read error: {}'.format(path))
+        logger.error(fileFuncLine())
+        exit(1)
 
     return load_path
 
@@ -90,7 +117,9 @@ def getFilePath(folder, name, ext=''):
     if not os.path.isdir(folder):
         os.makedirs(folder)
 
-    return os.path.join(folder, name + ext)
+    path = os.path.join(folder, name + ext)
+    logger.debug('get file path: {}'.format(path))
+    return path
 
 
 def sortTimeStamp(folder_list, ext):
@@ -117,4 +146,4 @@ def fileFuncLine():
         inspect.currentframe().f_back.f_code.co_filename
     )
     lineno = inspect.currentframe().f_back.f_lineno
-    return '>>> {0}, {1}(), {2}[line] <<<\n'.format(filename, funcname, lineno)
+    return '>>> {0}, {1}(), {2}[line] <<<'.format(filename, funcname, lineno)
