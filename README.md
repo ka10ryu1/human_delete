@@ -106,11 +106,11 @@ $ ./train.py
 以下のファイルがresultフォルダに生成されていれば成功
 
 - loss.png
-- *.json
 - *.log
 - *.model
 - *_10.snapshot
 - *_graph.dot
+- *_train.json
 
 ## 推論実行
 

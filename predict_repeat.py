@@ -4,7 +4,13 @@
 help = 'predictを繰り返し実行する'
 #
 
+import logging
+# basicConfig()は、 debug()やinfo()を最初に呼び出す"前"に呼び出すこと
+logging.basicConfig(format='%(message)s')
+logging.getLogger('Tools').setLevel(level=logging.INFO)
+
 import cv2
+import time
 import argparse
 import numpy as np
 
@@ -47,7 +53,7 @@ def command():
     parser.add_argument('--predict_num', '-pn', type=int, default=12,
                         help='推論実行反復回数 [default: 12]')
     parser.add_argument('--wait', '-w', type=int, default=500,
-                        help='画像を表示させる待ち時間 [ms] [default: 500]')
+                        help='画像を表示させる最短待ち時間 [ms] [default: 500]')
     parser.add_argument('--gpu', '-g', type=int, default=-1,
                         help='GPU ID [default -1]')
     parser.add_argument('--out_path', '-o', default='./result/',
@@ -81,6 +87,7 @@ def main(args):
         model.to_intel64()
 
     for i in range(args.predict_num):
+        st = time.time()
         # 画像の生成
         x, _ = create(args.other_path,
                       args.human_path,
@@ -99,7 +106,13 @@ def main(args):
         img = np.hstack([x[0], img])
         cv2.imwrite(name, img)
         cv2.imshow('view', img)
-        cv2.waitKey(args.wait)
+        wait_time = (args.wait) - (time.time()-st)*1000
+        if wait_time < 0:
+            cv2.waitKey(30)
+        else:
+            cv2.waitKey(wait_time)
+
+    cv2.waitKey(1000)
 
 
 if __name__ == '__main__':

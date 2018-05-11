@@ -4,6 +4,11 @@
 help = '学習メイン部'
 #
 
+import logging
+# basicConfig()は、 debug()やinfo()を最初に呼び出す"前"に呼び出すこと
+logging.basicConfig(format='%(message)s')
+logging.getLogger('Tools').setLevel(level=logging.INFO)
+
 import json
 import argparse
 import numpy as np
@@ -74,7 +79,9 @@ def command():
                         help='学習過程をPNG形式で出力しない場合に使用する')
     parser.add_argument('--only_check', action='store_true',
                         help='オプション引数が正しく設定されているかチェックする')
-    return parser.parse_args()
+    args = parser.parse_args()
+    F.argsPrint(args)
+    return args
 
 
 def main(args):
@@ -115,7 +122,7 @@ def main(args):
     train = ResizeImgDataset(train, args.shuffle_rate)
     test = ResizeImgDataset(test, args.shuffle_rate)
     # predict.pyでモデルを決定する際に必要なので記憶しておく
-    model_param = {i: getattr(args, i) for i in dir(args) if not '_' in i[0]}
+    model_param = F.args2dict(args)
     model_param['shape'] = train[0][0].shape
 
     train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
@@ -183,9 +190,7 @@ def main(args):
         chainer.serializers.load_npz(args.resume, trainer)
 
     if args.only_check is False:
-        # predict.pyでモデルのパラメータを読み込むjson形式で保存する
-        with open(F.getFilePath(args.out_path, exec_time, '.json'), 'w') as f:
-            json.dump(model_param, f, indent=4, sort_keys=True)
+        F.dict2json(args.out_path, exec_time + '_train', model_param)
 
     # Run the training
     trainer.run()
@@ -200,6 +205,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = command()
-    F.argsPrint(args)
-    main(args)
+    main(command())

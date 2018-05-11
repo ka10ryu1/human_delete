@@ -4,6 +4,11 @@
 help = '画像を読み込んでデータセットを作成する'
 #
 
+import logging
+# basicConfig()は、 debug()やinfo()を最初に呼び出す"前"に呼び出すこと
+logging.basicConfig(format='%(message)s')
+logging.getLogger('Tools').setLevel(level=logging.INFO)
+
 import os
 import cv2
 import argparse
@@ -37,7 +42,9 @@ def command():
                         help='画像数に対する学習用画像の割合 [default: 0.9]')
     parser.add_argument('-o', '--out_path', default='./result/',
                         help='・ (default: ./result/)')
-    return parser.parse_args()
+    args = parser.parse_args()
+    F.argsPrint(args)
+    return args
 
 
 def saveNPZ(x, y, name, folder, size):
@@ -196,6 +203,9 @@ def main(args):
     print('train x/y:{0}/{1}'.format(train_x.shape, train_y.shape))
     print('test  x/y:{0}/{1}'.format(test_x.shape, test_y.shape))
 
+    print('save param...')
+    F.dict2json(args.out_path, 'dataset', F.args2dict(args))
+
     # 生成したデータをnpz形式でデータセットとして保存する
     # ここで作成したデータの中身を確認する場合はnpz2jpg.pyを使用するとよい
     print('save npz...')
@@ -204,6 +214,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = command()
-    F.argsPrint(args)
-    main(args)
+    main(command())

@@ -4,6 +4,11 @@
 help = 'モデルとモデルパラメータを利用して推論実行する'
 #
 
+import logging
+# basicConfig()は、 debug()やinfo()を最初に呼び出す"前"に呼び出すこと
+logging.basicConfig(format='%(message)s')
+logging.getLogger('Tools').setLevel(level=logging.INFO)
+
 import cv2
 import time
 import argparse
