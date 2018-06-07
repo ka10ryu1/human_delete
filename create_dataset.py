@@ -174,10 +174,12 @@ def create(obj_path, h_path, bg_path,
 
         for j in objects:
             background, _ = IMG.paste(j, background)
+            #IMG.write('buf', 'test', background)
 
         y.append(background[:, :, :3])
         for k in human:
             background, _ = IMG.paste(k, background)
+            #IMG.write('buf', 'test', background)
 
         x.append(background[:, :, :3])
 

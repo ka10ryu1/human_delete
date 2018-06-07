@@ -17,7 +17,7 @@ except ImportError:
     logger.warning('not import cupy')
 
 [sys.path.append(d) for d in ['./Tools/', '../Tools/'] if os.path.isdir(d)]
-from func import fileFuncLine
+from func import fileFuncLine, getFilePath
 
 
 def getCh(ch):
@@ -34,6 +34,13 @@ def getCh(ch):
         return cv2.IMREAD_COLOR
     else:
         return cv2.IMREAD_UNCHANGED
+
+
+def write(folder, name, img, ext='.jpg'):
+    write.__dict__.setdefault('count', 0)
+    path = getFilePath(folder, name+str(write.count).zfill(4), ext)
+    cv2.imwrite(path, img)
+    write.count += 1
 
 
 def blank(size, color, dtype=np.uint8, min_val=0, max_val=255):
